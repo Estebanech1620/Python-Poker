@@ -1,0 +1,84 @@
+import random
+
+# Define card suits and ranks as global constants
+SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+RANKS = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']
+
+# Define card values and poker hand rankings
+CARD_VALUES = {'Two': 2, 'Three': 3, 'Four': 4, 'Five': 5, 'Six': 6, 'Seven': 7, 'Eight': 8,
+               'Nine': 9, 'Ten': 10, 'Jack': 11, 'Queen': 12, 'King': 13, 'Ace': 14}
+
+# Poker hand rankings
+HAND_RANKINGS = {
+    'High Card': 1, 'One Pair': 2, 'Two Pair': 3, 'Three of a Kind': 4,
+    'Straight': 5, 'Flush': 6, 'Full House': 7, 'Four of a Kind': 8, 'Straight Flush': 9
+}
+
+class PokerGame:
+    def __init__(self):
+        self.deck = [{'rank': rank, 'suit': suit} for suit in SUITS for rank in RANKS]
+        self.players = []
+        self.community_cards = []
+
+    def deal_hand(self):
+        random.shuffle(self.deck)
+        return [self.deck.pop() for _ in range(2)]
+
+    def deal_flop(self):
+        random.shuffle(self.deck)
+        self.community_cards.extend([self.deck.pop() for _ in range(3)])
+
+    def evaluate_hand(self, hand):
+        hand_values = [CARD_VALUES[card['rank']] for card in hand]
+        hand_values.sort(reverse=True)
+
+        # Check for Flush
+        if all(card['suit'] == hand[0]['suit'] for card in hand):
+            return 'Flush'
+
+        # Check for One Pair
+        for value in hand_values:
+            if hand_values.count(value) == 2:
+                return 'One Pair'
+
+        return 'High Card'
+
+    def play(self):
+        while True:
+            num_players = int(input("Enter the number of players: "))
+            self.players = []
+
+            for i in range(num_players):
+                player_hand = self.deal_hand()
+                self.players.append(player_hand)
+
+            self.deal_flop()
+            print("\nCommunity cards (Flop):")
+            for card in self.community_cards:
+                print(f"{card['rank']} of {card['suit']}")
+            print()
+
+            for i, player_hand in enumerate(self.players):
+                print(f"Player {i+1}'s hand:")
+                for card in player_hand:
+                    print(f"{card['rank']} of {card['suit']}")
+                hand_rank = self.evaluate_hand(player_hand + self.community_cards)
+                print(f"Hand Ranking: {hand_rank}\n")
+
+            print()  # Add an empty line for more spacing
+
+            for i, player_hand in enumerate(self.players):
+                bet = int(input(f"Player {i+1}, place your bet: "))
+                hand_rank = self.evaluate_hand(player_hand + self.community_cards)
+                if hand_rank != 'High Card':
+                    print(f"Player {i+1}, you won {bet}!")
+                else:
+                    print(f"Player {i+1}, better luck next time!")
+
+            play_again = input("Do you want to play again? (yes/no): ").lower()
+            if play_again != 'yes' and play_again != 'y':
+                break
+
+if __name__ == "__main__":
+    game = PokerGame()
+    game.play()
